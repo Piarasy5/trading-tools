@@ -240,7 +240,7 @@ header p { font-size:8px; color:var(--dim); letter-spacing:2px; text-transform:u
   <header>
     <div>
       <h1>PRE-MARKET <em>GAME PLAN</em></h1>
-      <p>Complete before 9:30am · Click direction to toggle Long / Short / Swing · R:R live</p>
+      <p>Complete before 9:30am · R:R live</p>
     </div>
     <div class="hdr-btns">
       <button class="btn btn-ghost"  onclick="exportCSV()">Export CSV</button>
@@ -370,7 +370,6 @@ function renderTabs() {
   document.getElementById('tabsWrap').innerHTML = cards.map(c => `
     <div class="tab-btn ${c.direction}-dir${c.id===activeId?' active':''}" onclick="switchTab(${c.id})" style="position:relative;">
       <span class="tab-ticker">${c.ticker||'—'}</span>
-      <span class="tab-dir ${c.direction}">${DLBL[c.direction]}</span>
       ${cards.length>1?`<span onclick="event.stopPropagation();removeCard(${c.id})" style="position:absolute;top:3px;right:4px;font-size:8px;color:var(--dim);cursor:pointer;line-height:1;padding:1px 3px;border-radius:2px;" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--dim)'">✕</span>`:''}
     </div>`).join('');
 }
@@ -465,11 +464,7 @@ function cardHTML(c) {
     <div class="row" style="min-height:52px;"><div class="row-label">Strategy</div><div class="row-val">
       <textarea placeholder="Describe your strategy and thesis..." oninput="set(${c.id},'strategy',this.value)">${esc(c.strategy)}</textarea>
     </div></div>
-    <div class="row"><div class="row-label">Direction</div>
-      <div class="row-val" style="padding:6px 10px;">
-        <button class="dir-btn ${c.direction}" onclick="cycleDir(${c.id})">${DLBL[c.direction]}</button>
-      </div>
-    </div>
+
     <div class="row"><div class="row-label">Entry $</div><div class="row-val">
       <input class="entry-f" type="number" placeholder="0.00" step="0.01" value="${c.entry}" oninput="set(${c.id},'entry',this.value)">
     </div></div>
@@ -599,8 +594,8 @@ function save(){ try{localStorage.setItem('pmgp',JSON.stringify({cards,nid}));}c
 function load(){ try{const d=JSON.parse(localStorage.getItem('pmgp')||'null');if(d){cards=d.cards;nid=d.nid;}}catch(e){} }
 
 function exportCSV(){
-  const h=['Ticker','Direction','Day','Market Cap','Shares Outstanding','Float','Short Float %','Inside Own %','Inst Own %','Prev Close','Gaps>20','Avg Gap %','Avg Spike %','Closes Below %','Pre-Market Vol','SSR','ETB','News','Dilution','News Headline','Key Levels','Strategy','Notes','Entry','Stop','Target 1','Final Target','Result','P&L'];
-  const rows=[h,...cards.map(c=>[c.ticker,c.direction,c.day,c.marketCap,c.sharesOut,c.float,c.shortFloat,c.insideOwn,c.instOwn,c.prevClose,c.gapsAbove20,c.avgGap,c.avgSpike,c.closesBelow,c.preVol,c.ssr,c.etb,c.news,c.dilution,c.newsHeadline,c.keyLevels,c.strategy,c.notes,c.entry,c.stop,c.target1,c.finalTarget,c.result,c.pnl])];
+  const h=['Ticker','Day','Market Cap','Shares Outstanding','Float','Short Float %','Inside Own %','Inst Own %','Prev Close','Gaps>20','Avg Gap %','Avg Spike %','Closes Below %','Pre-Market Vol','SSR','ETB','News','Dilution','News Headline','Key Levels','Strategy','Notes','Entry','Stop','Target 1','Final Target','Result','P&L'];
+  const rows=[h,...cards.map(c=>[c.ticker,c.day,c.marketCap,c.sharesOut,c.float,c.shortFloat,c.insideOwn,c.instOwn,c.prevClose,c.gapsAbove20,c.avgGap,c.avgSpike,c.closesBelow,c.preVol,c.ssr,c.etb,c.news,c.dilution,c.newsHeadline,c.keyLevels,c.strategy,c.notes,c.entry,c.stop,c.target1,c.finalTarget,c.result,c.pnl])];
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([rows.map(r=>r.map(v=>`"${String(v||'').replace(/"/g,'""')}"`).join(',')).join('\n')],{type:'text/csv'}));
   a.download=`gameplan_${new Date().toISOString().slice(0,10)}.csv`; a.click();
