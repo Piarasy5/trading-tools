@@ -1054,7 +1054,10 @@ export default function TradingDashboard() {
   const fetchMarket = useCallback(async(silent=false)=>{
     if(!silent) setUpdating(true);
     try {
-      const res  = await fetch(`${API_BASE}/api/market`);
+      const controller = new AbortController();
+      const timeout = setTimeout(()=>controller.abort(), 60000); // 60s timeout for wake-up
+      const res  = await fetch(`${API_BASE}/api/market`, {signal: controller.signal});
+      clearTimeout(timeout);
       const json = await res.json();
       if(json && json.totalScore !== undefined){
         setData(json);
@@ -1152,11 +1155,11 @@ export default function TradingDashboard() {
             <span style={{fontSize:8,color:view==="smallcap"?"#8a2030":"#2a4050",letterSpacing:0}}>short env.</span>
           </button>
           <div style={{display:"flex",alignItems:"center",gap:5}}>
-            <div style={{width:6,height:6,borderRadius:"50%",background:updating?"#f5a623":isLive?"#00d4aa":"#f5a623",animation:"pulse 2s infinite"}}/>
-            <span style={{fontFamily:"monospace",fontSize:10,color:updating?"#f5a623":isLive?"#00d4aa":"#f5a623"}}>
-              {updating?"UPDATING":isLive?"LIVE":"SIMULATED"}
+            <div style={{width:6,height:6,borderRadius:"50%",background:updating?"#f5a623":isLive?"#00d4aa":apiError?"#e63946":"#f5a623",animation:"pulse 2s infinite"}}/>
+            <span style={{fontFamily:"monospace",fontSize:10,color:updating?"#f5a623":isLive?"#00d4aa":apiError?"#f5a623":"#f5a623"}}>
+              {updating?"UPDATING":isLive?"LIVE":apiError?"WAKING...":"CONNECTING"}
             </span>
-            {apiError&&<span style={{fontFamily:"monospace",fontSize:9,color:"#e63946"}}>API ERR</span>}
+            {apiError&&!isLive&&<span style={{fontFamily:"monospace",fontSize:9,color:"#f5a623"}}>~50s</span>}
           </div>
           <span style={{fontFamily:"monospace",fontSize:10,color:"#2a4050"}}>🕐 {secsAgo}s ago</span>
           <button onClick={()=>refresh()} style={{background:"#0a1825",border:"1px solid #182535",color:"#6a8a9a",fontFamily:"monospace",fontSize:10,padding:"3px 9px",cursor:"pointer"}}>↻</button>
