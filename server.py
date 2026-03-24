@@ -14,7 +14,11 @@ import threading
 import os
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/api/*": {
+    "origins": "*",
+    "methods": ["GET","OPTIONS"],
+    "allow_headers": ["Content-Type","Authorization"]
+}})
 
 # ─── Cache ────────────────────────────────────────────────────────────────
 _cache = {}
@@ -584,7 +588,23 @@ def health():
         "cache_keys": list(_cache.keys()),
     })
 
+# ─── Keep-alive (pings self every 10 min to prevent Render sleep) ─────────
+def keep_alive():
+    import urllib.request
+    while True:
+        time.sleep(600)  # every 10 minutes
+        try:
+            url = os.environ.get("RENDER_EXTERNAL_URL","")
+            if url:
+                urllib.request.urlopen(f"{url}/api/health", timeout=10)
+                print("Keep-alive ping sent")
+        except Exception as e:
+            print(f"Keep-alive ping failed: {e}")
+
 # ─── Run ──────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
+    # Start keep-alive thread
+    t = threading.Thread(target=keep_alive, daemon=True)
+    t.start()
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=False)
